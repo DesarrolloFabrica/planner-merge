@@ -6,32 +6,33 @@ Backend API para Planner Fabrica - Fábrica de Contenido con Express + Node.js +
 
 ```bash
 cd server
-bun install
+npm install
 ```
 
 ## Configuración
 
-Las variables de entorno ya están configuradas en `.env`:
+Crea un archivo `.env` local. No publiques este archivo ni credenciales reales:
 
 ```env
 PGHOST=localhost
 PGPORT=5432
-PGDATABASE=pruebas_haider
+PGDATABASE=planner_db
 PGUSER=postgres
-PGPASSWORD=postgres
+PGPASSWORD=your_local_password
 PORT=3001
-JWT_SECRET=taskflow-jwt-secret-change-in-production-2024
-CORS_ORIGIN=http://localhost:5173
+JWT_SECRET=replace_with_a_long_random_secret
+CORS_ORIGIN=http://localhost:8080
 ```
 
 ## Ejecutar el servidor
 
 ```bash
 # Modo desarrollo (con hot reload)
-bun run dev
+npm run dev
 
 # Modo producción
-bun start
+npm run build
+npm start
 ```
 
 El servidor se ejecutará en **http://localhost:3001**
@@ -40,7 +41,8 @@ El servidor se ejecutará en **http://localhost:3001**
 
 ### Health Check
 ```
-GET /health
+GET /healthz
+GET /readyz
 ```
 
 ### Autenticación
@@ -51,8 +53,8 @@ POST /api/auth/login
 Content-Type: application/json
 
 {
-  "email": "haider_bello@cun.edu.co",
-  "password": "TaskFlow2024"
+  "email": "usuario@ejemplo.com",
+  "password": "contraseña_configurada_localmente"
 }
 ```
 
@@ -61,8 +63,8 @@ Content-Type: application/json
 {
   "user": {
     "id": "uuid",
-    "email": "haider_bello@cun.edu.co",
-    "full_name": "Haider Bello",
+    "email": "usuario@ejemplo.com",
+    "full_name": "Usuario de ejemplo",
     "avatar_url": null,
     "role": "admin"
   },
@@ -113,16 +115,13 @@ server/
 └── README.md
 ```
 
-## Credenciales de Prueba
+## Reportes
 
-### Super Administrador
-- Email: `haider_bello@cun.edu.co`
-- Password: `TaskFlow2024`
+La metodología de capacidad, las fuentes de horas y los endpoints agregados en la rama `copia` están documentados en [README_REPORTES.md](./README_REPORTES.md).
 
-### Líderes de Proyecto
-- Email: `deyvis_miranda@cun.edu.co` / Password: `TaskFlow2024`
-- Email: `german_giraldo@cun.edu.co` / Password: `TaskFlow2024`
-- Email: `nathaly_amaya@cun.edu.co` / Password: `TaskFlow2024`
+## Usuarios de desarrollo
+
+Las cuentas de prueba deben crearse localmente mediante los scripts de base de datos y sus contraseñas deben cambiarse antes de usar cualquier entorno compartido.
 
 ## Próximos Pasos
 

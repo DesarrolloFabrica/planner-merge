@@ -21,6 +21,24 @@ La solución está orientada a equipos que requieren visibilidad operativa, cont
 
 ---
 
+## Versión `copia`
+
+Esta versión incorpora los tableros de **Cobertura** y **Capacidad** de fábrica, con lectura por persona, proyecto, línea de producción y fábrica completa.
+
+- [Índice de documentación](./docs/README.md)
+- [Bitácora completa de cambios de la rama `copia`](./docs/CAMBIOS_RAMA_COPIA.md)
+- [Metodología y API de los reportes](./server/README_REPORTES.md)
+
+La capacidad se calcula con la fórmula:
+
+```text
+ocupación (%) = horas estimadas pendientes / capacidad semanal × 100
+```
+
+La pantalla explica visualmente el cálculo y sus límites: usa todo el backlog pendiente, las tareas sin estimación no aportan horas y los porcentajes de distintos proyectos no se deben sumar.
+
+---
+
 ## ✨ Funcionalidades principales
 
 - 📋 **Tablero Kanban** para gestión visual de tareas
@@ -131,15 +149,19 @@ psql -h localhost -p 5432 -U postgres -d planner_db -f database/seed_users.sql
 Backend
 ```
 cd server
-bun install
-bun run dev
+npm install
+npm run dev
 ```
 ## Frontend
 ```
 cd ..
-bun install
-bun dev
+npm install
+npm run dev
 ```
+
+- Frontend local: `http://localhost:8080`
+- Backend local: `http://localhost:3001`
+- Estado del backend: `GET http://localhost:3001/healthz`
 ---
 ## API principal
 * POST /api/auth/login — Iniciar sesión

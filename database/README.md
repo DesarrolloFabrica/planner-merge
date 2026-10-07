@@ -45,16 +45,11 @@ LEFT JOIN public.user_roles ur ON ur.user_id = p.id
 ORDER BY ur.role;
 ```
 
-## Credenciales de inicio de sesión
+## Usuarios locales
 
-### Super Administrador
-- **Email:** `haider_bello@cun.edu.co`
-- **Password:** `TaskFlow2024`
+El script `seed_users.sql` crea datos para desarrollo. Revisa sus valores antes de ejecutarlo y cambia todas las contraseñas antes de compartir o desplegar la base de datos.
 
-### Líderes de Proyecto
-- **Email:** `deyvis_miranda@cun.edu.co` / **Password:** `TaskFlow2024`
-- **Email:** `german_giraldo@cun.edu.co` / **Password:** `TaskFlow2024`
-- **Email:** `nathaly_amaya@cun.edu.co` / **Password:** `TaskFlow2024`
+No documentes ni confirmes credenciales reales en el repositorio.
 
 ## Agregar nuevos usuarios
 

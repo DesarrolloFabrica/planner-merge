@@ -2,7 +2,7 @@
 // "trabajo pendiente contra una semana" en la persona, en el proyecto y en
 // toda la fábrica.
 import { useMemo, useState } from 'react';
-import { Search } from 'lucide-react';
+import { Calculator, Factory, FolderKanban, Search, UserRound } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -21,14 +21,6 @@ import {
 } from '@/hooks/useReports';
 
 const CARD_CLASS = 'rounded-2xl border border-border bg-card shadow-[0_2px_8px_rgba(0,0,0,0.04)]';
-
-const RISK_BADGE_CLASSES: Record<RiskLevel, string> = {
-  available: 'bg-sky-50 text-sky-700 border-sky-200',
-  ok: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-  warning: 'bg-amber-50 text-amber-700 border-amber-200',
-  over: 'bg-red-50 text-red-700 border-red-200',
-  unknown: 'bg-slate-50 text-slate-600 border-slate-200',
-};
 
 const LOAD_COPY: Record<RiskLevel, string> = {
   available: 'Tiene espacio',
@@ -75,13 +67,135 @@ function bandFor(pct: number): RiskLevel {
   return 'ok';
 }
 
-function scrollToSection(id: string) {
-  document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-}
-
 function formatLoad(hours: number): string {
   if (hours <= 0) return '0h';
   return formatHours(hours);
+}
+
+function CapacityGauge({ pct }: { pct: number }) {
+  const level = bandFor(pct);
+  const color = riskColorHex(levelColor(level));
+  const radius = 44;
+  const circumference = 2 * Math.PI * radius;
+  const progress = Math.min(Math.max(pct, 0), 100);
+
+  return (
+    <div className="relative h-32 w-32 shrink-0" role="img" aria-label={`${pct}% de ocupación de la fábrica`}>
+      <svg viewBox="0 0 112 112" className="h-full w-full -rotate-90" aria-hidden>
+        <circle cx="56" cy="56" r={radius} fill="none" stroke="hsl(var(--muted))" strokeWidth="10" />
+        <circle
+          cx="56"
+          cy="56"
+          r={radius}
+          fill="none"
+          stroke={color}
+          strokeWidth="10"
+          strokeLinecap="round"
+          strokeDasharray={circumference}
+          strokeDashoffset={circumference * (1 - progress / 100)}
+        />
+      </svg>
+      <div className="absolute inset-0 flex flex-col items-center justify-center">
+        <span className="text-2xl font-bold tabular-nums">{pct}%</span>
+        <span className="text-[10px] font-medium text-muted-foreground">ocupación</span>
+      </div>
+    </div>
+  );
+}
+
+function CapacityExplanation({
+  pendingHours,
+  weekHours,
+  pct,
+}: {
+  pendingHours: number;
+  weekHours: number;
+  pct: number;
+}) {
+  const levels = [
+    { icon: UserRound, title: 'Persona', description: 'Sus horas pendientes ÷ su capacidad semanal' },
+    { icon: FolderKanban, title: 'Proyecto', description: 'Horas del proyecto ÷ capacidad de su equipo' },
+    { icon: Factory, title: 'Fábrica', description: 'Todo lo pendiente ÷ capacidad de todo el personal' },
+  ];
+
+  return (
+    <div className="rounded-2xl border border-border bg-card overflow-hidden shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
+      <div className="grid grid-cols-1 xl:grid-cols-[1fr_auto] gap-6 p-5 bg-gradient-to-br from-primary/10 via-card to-card">
+        <div className="space-y-4">
+          <div className="flex items-start gap-3">
+            <div className="h-10 w-10 rounded-xl bg-primary/15 text-primary flex items-center justify-center shrink-0">
+              <Calculator className="h-5 w-5" />
+            </div>
+            <div>
+              <h2 className="text-base font-semibold">¿Cómo calculamos la capacidad?</h2>
+              <p className="text-xs text-muted-foreground mt-1">
+                Comparamos el trabajo que falta por entregar con las horas disponibles en una semana.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2 text-center">
+            <div className="rounded-xl border border-border bg-background px-4 py-2.5">
+              <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Horas pendientes</p>
+              <p className="text-lg font-bold tabular-nums">{formatLoad(pendingHours)}</p>
+            </div>
+            <span className="text-xl font-semibold text-muted-foreground">÷</span>
+            <div className="rounded-xl border border-border bg-background px-4 py-2.5">
+              <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Capacidad semanal</p>
+              <p className="text-lg font-bold tabular-nums">{formatLoad(weekHours)}</p>
+            </div>
+            <span className="text-xl font-semibold text-muted-foreground">× 100 =</span>
+            <div className="rounded-xl bg-primary px-4 py-2.5 text-primary-foreground shadow-sm">
+              <p className="text-[10px] uppercase tracking-wide opacity-75">Ocupación</p>
+              <p className="text-lg font-bold tabular-nums">{pct}%</p>
+            </div>
+          </div>
+
+          <div className="rounded-xl border border-amber-200 bg-amber-50/80 px-3 py-2 text-xs leading-relaxed text-amber-900">
+            <span className="font-semibold">Importante:</span> aquí “pendiente” incluye todo el backlog sin completar,
+            aunque venza después. Por eso 200% significa aproximadamente dos semanas de trabajo acumulado.
+          </div>
+        </div>
+
+        <div className="flex items-center justify-center xl:px-6">
+          <CapacityGauge pct={pct} />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 border-t border-border">
+        {levels.map(({ icon: Icon, title, description }, index) => (
+          <div key={title} className={cn('p-4 flex gap-3', index > 0 && 'md:border-l border-border')}>
+            <div className="h-8 w-8 rounded-lg bg-muted flex items-center justify-center shrink-0">
+              <Icon className="h-4 w-4 text-primary" />
+            </div>
+            <div>
+              <p className="text-xs font-semibold">{index + 1} · {title}</p>
+              <p className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed">{description}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="border-t border-border px-5 py-3 space-y-2.5">
+        <div className="grid grid-cols-[5fr_4fr_1fr_1fr] h-2.5 overflow-hidden rounded-full">
+          <div className="bg-sky-500" />
+          <div className="bg-emerald-500" />
+          <div className="bg-amber-400" />
+          <div className="bg-red-500" />
+        </div>
+        <div className="flex flex-wrap gap-x-5 gap-y-1 text-[11px] text-muted-foreground">
+          <span><b className="text-sky-700">&lt; 50%</b> tiene espacio</span>
+          <span><b className="text-emerald-700">50–89%</b> cabe esta semana</span>
+          <span><b className="text-amber-700">90–99%</b> casi llena</span>
+          <span><b className="text-red-700">≥ 100%</b> necesita más de una semana</span>
+        </div>
+        <p className="text-[11px] text-muted-foreground">
+          Los porcentajes de proyectos no se suman: una misma persona puede participar en varios proyectos.
+          Las tareas sin horas estimadas no aumentan el porcentaje.
+        </p>
+      </div>
+    </div>
+  );
 }
 
 function initials(name: string | null): string {
@@ -216,28 +330,11 @@ export function CapacidadFabricaTab() {
 
   return (
     <div className="space-y-8">
-      <div className="rounded-2xl border border-border bg-card px-4 py-4 space-y-3">
-        <p className="text-sm font-semibold">Cumplimiento de la fábrica, de lo chico a lo grande</p>
-        <p className="text-xs text-muted-foreground max-w-3xl leading-relaxed">
-          La barra es siempre la misma idea. Lo pintado es trabajo que todavía no se entrega. La barra completa es una semana:
-          de esa persona, del equipo de ese proyecto, o de toda la fábrica.
-        </p>
-        <div className="flex flex-wrap items-center gap-2 text-[11px]">
-          {(['available', 'ok', 'warning', 'over'] as RiskLevel[]).map(level => (
-            <span key={level} className={cn('inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5', RISK_BADGE_CLASSES[level])}>
-              <span className="h-2 w-2 rounded-full" style={{ backgroundColor: riskColorHex(levelColor(level)) }} />
-              {LOAD_COPY[level]}
-            </span>
-          ))}
-        </div>
-        <div className="flex flex-wrap items-center gap-2 pt-1 text-xs font-semibold text-muted-foreground">
-          <button type="button" onClick={() => scrollToSection('cumplimiento-persona')} className="rounded-md bg-muted px-2 py-1 text-foreground">1 · Persona</button>
-          <span aria-hidden>→</span>
-          <button type="button" onClick={() => scrollToSection('cumplimiento-proyecto')} className="rounded-md bg-muted px-2 py-1 text-foreground">2 · Proyecto</button>
-          <span aria-hidden>→</span>
-          <button type="button" onClick={() => scrollToSection('cumplimiento-fabrica')} className="rounded-md bg-muted px-2 py-1 text-foreground">3 · Fábrica</button>
-        </div>
-      </div>
+      <CapacityExplanation
+        pendingHours={summary.horas_pendientes_fabrica}
+        weekHours={summary.capacidad_semanal_fabrica}
+        pct={summary.utilizacion_pct_fabrica}
+      />
 
       <div className="relative w-full sm:w-80">
         <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
